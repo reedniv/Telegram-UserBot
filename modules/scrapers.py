@@ -20,6 +20,13 @@ from urbandict import define
 from wikipedia import summary
 from wikipedia.exceptions import DisambiguationError, PageError
 
+from youtube_dl import YoutubeDL
+from youtube_dl.utils import (DownloadError, ContentTooShortError,
+                              ExtractorError, GeoRestrictedError,
+                              MaxDownloadsReached, PostProcessingError,
+                              UnavailableVideoError, XAttrMetadataError)
+
+from telethon.tl.types import DocumentAttributeAudio
 from userbot import (BOTLOG, BOTLOG_CHATID, CMD_HELP, CURRENCY_API,
                      YOUTUBE_API_KEY, YOUTUBE_API_KEY, CHROME_DRIVER, GOOGLE_CHROME_BIN, bot)
 from userbot.events import register
