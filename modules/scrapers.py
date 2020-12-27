@@ -172,16 +172,16 @@ async def text_to_speech(query):
     elif textx:
         message = textx.text
     else:
-        await query.edit("`Give a text or reply to a "
-                         "message for Text-to-Speech!`")
+        await query.edit("`Give a text or reply to a message for Text-to-Speech!`")
         return
 
     try:
         gTTS(message, LANG)
     except AssertionError:
-        await query.edit('The text is empty.\n'
-                         'Nothing left to speak after pre-precessing, '
-                         'tokenizing and cleaning.')
+        await query.edit(
+            'The text is empty.\n'
+            'Nothing left to speak after pre-precessing, tokenizing and cleaning.'
+        )
         return
     except ValueError:
         await query.edit('Language is not supported.')
@@ -202,7 +202,7 @@ async def text_to_speech(query):
         os.remove("k.mp3")
         if BOTLOG:
             await query.client.send_message(
-                BOTLOG_CHATID, "tts of " + message + " executed successfully!")
+                BOTLOG_CHATID, "Text to Speech executed successfully !")
         await query.delete()
 
 
@@ -217,8 +217,7 @@ async def translateme(trans):
     elif textx:
         message = textx.text
     else:
-        await trans.edit("`Give a text or reply "
-                         "to a message to translate!`")
+        await trans.edit("`Give a text or reply to a message to translate!`")
         return
 
     try:
