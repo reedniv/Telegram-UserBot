@@ -1,4 +1,4 @@
-""" Userbot module containing various scrapers. """
+""" Userbot module containing various translation. """
 
 import os
 import time
