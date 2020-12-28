@@ -1,4 +1,4 @@
-""" Userbot module containing various translation. """
+""" Userbot module containing various scrapers. """
 
 import os
 import time
@@ -30,7 +30,9 @@ from userbot.events import register
 from telethon.tl.types import DocumentAttributeAudio
 from userbot.modules.upload_download import progress, humanbytes, time_formatter
 
-LANG = "en"
+
+TTS_LANG = "en"
+TRT_LANG = "en"
 
 @register(outgoing=True, pattern=r"^.tts(?: |$)([\s\S]*)")
 async def text_to_speech(query):
@@ -47,7 +49,7 @@ async def text_to_speech(query):
         return
 
     try:
-        gTTS(message, LANG)
+        gTTS(message, TTS_LANG)
     except AssertionError:
         await query.edit(
             'The text is empty.\n'
@@ -60,13 +62,13 @@ async def text_to_speech(query):
     except RuntimeError:
         await query.edit('Error loading the languages dictionary.')
         return
-    tts = gTTS(message, LANG)
+    tts = gTTS(message, TTS_LANG)
     tts.save("k.mp3")
     with open("k.mp3", "rb") as audio:
         linelist = list(audio)
         linecount = len(linelist)
     if linecount == 1:
-        tts = gTTS(message, LANG)
+        tts = gTTS(message, TTS_LANG)
         tts.save("k.mp3")
     with open("k.mp3", "r"):
         await query.client.send_file(query.chat_id, "k.mp3", voice_note=True)
@@ -75,6 +77,7 @@ async def text_to_speech(query):
             await query.client.send_message(
                 BOTLOG_CHATID, "Text to Speech executed successfully !")
         await query.delete()
+
 
 @register(outgoing=True, pattern=r"^.trt(?: |$)([\s\S]*)")
 async def translateme(trans):
@@ -91,7 +94,7 @@ async def translateme(trans):
         return
 
     try:
-        reply_text = translator.translate(deEmojify(message), dest=LANG)
+        reply_text = translator.translate(deEmojify(message), dest=TRT_LANG)
     except ValueError:
         await trans.edit("Invalid destination language.")
         return
@@ -114,10 +117,10 @@ async def lang(value):
     util = value.pattern_match.group(1).lower()
     if util == "trt":
         scraper = "Translator"
-        global LANG
+        global TRT_LANG
         arg = value.pattern_match.group(2).lower()
         if arg in LANGUAGES:
-            LANG = arg
+            TRT_LANG = arg
             LANG = LANGUAGES[arg]
         else:
             await value.edit(
@@ -126,10 +129,10 @@ async def lang(value):
             return
     elif util == "tts":
         scraper = "Text to Speech"
-        global LANG
+        global TTS_LANG
         arg = value.pattern_match.group(2).lower()
         if arg in tts_langs():
-            LANG = arg
+            TTS_LANG = arg
             LANG = tts_langs()[arg]
         else:
             await value.edit(
@@ -143,9 +146,11 @@ async def lang(value):
             f"`Language for {scraper} changed to {LANG.title()}.`")
 
 
+
 def deEmojify(inputString):
     """ Remove emojis and other non-safe characters from string """
     return get_emoji_regexp().sub(u'', inputString)
+
 
 CMD_HELP.update({
     'tts':
