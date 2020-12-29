@@ -11,7 +11,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googletrans import LANGUAGES, Translator
 from gtts import gTTS
-from pytube.helpers import safe_filename
+
 from requests import get
 
 from telethon.tl.types import DocumentAttributeAudio
