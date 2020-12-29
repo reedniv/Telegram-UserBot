@@ -7,167 +7,19 @@ from shutil import rmtree
 from urllib.error import HTTPError
 
 from emoji import get_emoji_regexp
-from google_images_download import google_images_download
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googletrans import LANGUAGES, Translator
 from gtts import gTTS
-from pytube import YouTube
 from pytube.helpers import safe_filename
 from requests import get
-from search_engine_parser import GoogleSearch
-from urbandict import define
-from wikipedia import summary
-from wikipedia.exceptions import DisambiguationError, PageError
-
-from youtube_dl import YoutubeDL
-from youtube_dl.utils import (DownloadError, ContentTooShortError,
-                              ExtractorError, GeoRestrictedError,
-                              MaxDownloadsReached, PostProcessingError,
-                              UnavailableVideoError, XAttrMetadataError)
 
 from telethon.tl.types import DocumentAttributeAudio
-from userbot import (BOTLOG, BOTLOG_CHATID, CMD_HELP, CURRENCY_API,
-                     YOUTUBE_API_KEY, YOUTUBE_API_KEY, CHROME_DRIVER, GOOGLE_CHROME_BIN, bot)
+from userbot import (BOTLOG, BOTLOG_CHATID, CMD_HELP, CURRENCY_API
+                     , CHROME_DRIVER, GOOGLE_CHROME_BIN, bot)
 from userbot.events import register
 
 LANG = "en"
-
-
-@register(outgoing=True, pattern="^.img (.*)")
-async def img_sampler(event):
-    """ For .img command, search and return images matching the query. """
-    await event.edit("Processing...")
-    query = event.pattern_match.group(1)
-    lim = findall(r"lim=\d+", query)
-    try:
-        lim = lim[0]
-        lim = lim.replace("lim=", "")
-        query = query.replace("lim=" + lim[0], "")
-    except IndexError:
-        lim = 2
-    response = google_images_download.googleimagesdownload()
-
-    # creating list of arguments
-    arguments = {
-        "keywords": query,
-        "limit": lim,
-        "format": "jpg",
-        "no_directory": "no_directory"
-    }
-
-    # passing the arguments to the function
-    paths = response.download(arguments)
-    lst = paths[0][query]
-    await event.client.send_file(
-        await event.client.get_input_entity(event.chat_id), lst)
-    rmtree(os.path.dirname(os.path.abspath(lst[0])))
-    await event.delete()
-
-
-@register(outgoing=True, pattern=r"^.google (.*)")
-async def gsearch(q_event):
-    """ For .google command, do a Google search. """
-    match = q_event.pattern_match.group(1)
-    page = findall(r"page=\d+", match)
-    try:
-        page = page[0]
-        page = page.replace("page=", "")
-        match = match.replace("page=" + page[0], "")
-    except IndexError:
-        page = 1
-    search_args = (str(match), int(page))
-    gsearch = GoogleSearch()
-    gresults = gsearch.search(*search_args)
-    msg = ""
-    for i in range(10):
-        try:
-            title = gresults["titles"][i]
-            link = gresults["links"][i]
-            desc = gresults["descriptions"][i]
-            msg += f"{i}. [{title}]({link})\n`{desc}`\n\n"
-        except IndexError:
-            break
-    await q_event.edit("**Search Query:**\n`" + match + "`\n\n**Results:**\n" +
-                       msg,
-                       link_preview=False)
-    if BOTLOG:
-        await q_event.client.send_message(
-            BOTLOG_CHATID,
-            "Google Search query `" + match + "` was executed successfully",
-        )
-
-
-@register(outgoing=True, pattern=r"^.wiki (.*)")
-async def wiki(wiki_q):
-    """ For .google command, fetch content from Wikipedia. """
-    match = wiki_q.pattern_match.group(1)
-    try:
-        summary(match)
-    except DisambiguationError as error:
-        await wiki_q.edit(f"Disambiguated page found.\n\n{error}")
-        return
-    except PageError as pageerror:
-        await wiki_q.edit(f"Page not found.\n\n{pageerror}")
-        return
-    result = summary(match)
-    if len(result) >= 4096:
-        file = open("output.txt", "w+")
-        file.write(result)
-        file.close()
-        await wiki_q.client.send_file(
-            wiki_q.chat_id,
-            "output.txt",
-            reply_to=wiki_q.id,
-            caption="`Output too large, sending as file`",
-        )
-        if os.path.exists("output.txt"):
-            os.remove("output.txt")
-        return
-    await wiki_q.edit("**Search:**\n`" + match + "`\n\n**Result:**\n" + result)
-    if BOTLOG:
-        await wiki_q.client.send_message(
-            BOTLOG_CHATID, f"Wiki query {match} was executed successfully")
-
-
-@register(outgoing=True, pattern="^.ud (.*)")
-async def urban_dict(ud_e):
-    """ For .ud command, fetch content from Urban Dictionary. """
-    await ud_e.edit("Processing...")
-    query = ud_e.pattern_match.group(1)
-    try:
-        define(query)
-    except HTTPError:
-        await ud_e.edit(f"Sorry, couldn't find any results for: {query}")
-        return
-    mean = define(query)
-    deflen = sum(len(i) for i in mean[0]["def"])
-    exalen = sum(len(i) for i in mean[0]["example"])
-    meanlen = deflen + exalen
-    if int(meanlen) >= 0:
-        if int(meanlen) >= 4096:
-            await ud_e.edit("`Output too large, sending as file.`")
-            file = open("output.txt", "w+")
-            file.write("Text: " + query + "\n\nMeaning: " + mean[0]["def"] +
-                       "\n\n" + "Example: \n" + mean[0]["example"])
-            file.close()
-            await ud_e.client.send_file(
-                ud_e.chat_id,
-                "output.txt",
-                caption="`Output was too large, sent it as a file.`")
-            if os.path.exists("output.txt"):
-                os.remove("output.txt")
-            await ud_e.delete()
-            return
-        await ud_e.edit("Text: **" + query + "**\n\nMeaning: **" +
-                        mean[0]["def"] + "**\n\n" + "Example: \n__" +
-                        mean[0]["example"] + "__")
-        if BOTLOG:
-            await ud_e.client.send_message(
-                BOTLOG_CHATID, "ud query " + query + " executed successfully.")
-    else:
-        await ud_e.edit("No result found for **" + query + "**")
-
 
 @register(outgoing=True, pattern=r"^.tts(?: |$)([\s\S]*)")
 async def text_to_speech(query):
@@ -257,173 +109,11 @@ async def lang(value):
             BOTLOG_CHATID, "Default language changed to **" + LANG + "**")
 
 
-@register(outgoing=True, pattern="^.yt (.*)")
-async def yt_search(video_q):
-    """ For .yt command, do a YouTube search from Telegram. """
-    query = video_q.pattern_match.group(1)
-    result = ''
-    i = 1
-
-    if not YOUTUBE_API_KEY:
-        await video_q.edit("`Error: YouTube API key missing!\
-            Add it to environment vars or config.env.`")
-        return
-
-    await video_q.edit("```Processing...```")
-
-    full_response = youtube_search(query)
-    videos_json = full_response[1]
-
-    for video in videos_json:
-        result += f"{i}. {unescape(video['snippet']['title'])} \
-\nhttps://www.youtube.com/watch?v={video['id']['videoId']}\n"
-
-        i += 1
-
-    reply_text = f"**Search Query:**\n`{query}`\n\n**Result:**\n{result}"
-
-    await video_q.edit(reply_text)
-
-
-def youtube_search(query,
-                   order="relevance",
-                   token=None,
-                   location=None,
-                   location_radius=None):
-    """ Do a YouTube search. """
-    youtube = build('youtube',
-                    'v3',
-                    developerKey=YOUTUBE_API_KEY,
-                    cache_discovery=False)
-    search_response = youtube.search().list(
-        q=query,
-        type="video",
-        pageToken=token,
-        order=order,
-        part="id,snippet",
-        maxResults=10,
-        location=location,
-        locationRadius=location_radius).execute()
-
-    videos = []
-
-    for search_result in search_response.get("items", []):
-        if search_result["id"]["kind"] == "youtube#video":
-            videos.append(search_result)
-    try:
-        nexttok = search_response["nextPageToken"]
-        return (nexttok, videos)
-    except HttpError:
-        nexttok = "last_page"
-        return (nexttok, videos)
-    except KeyError:
-        nexttok = "KeyError, try again."
-        return (nexttok, videos)
-
-
-@register(outgoing=True, pattern=r"^.ytdl (\S*) ?(\S*)")
-async def download_video(v_url):
-    """ For .ytdl command, download videos from YouTube. """
-    url = v_url.pattern_match.group(1)
-    quality = v_url.pattern_match.group(2)
-
-    await v_url.edit("**Fetching...**")
-
-    video = YouTube(url)
-
-    if quality:
-        video_stream = video.streams.filter(progressive=True,
-                                            subtype="mp4",
-                                            res=quality).first()
-    else:
-        video_stream = video.streams.filter(progressive=True,
-                                            subtype="mp4").first()
-
-    if video_stream is None:
-        all_streams = video.streams.filter(progressive=True,
-                                           subtype="mp4").all()
-        available_qualities = ""
-
-        for item in all_streams[:-1]:
-            available_qualities += f"{item.resolution}, "
-        available_qualities += all_streams[-1].resolution
-
-        await v_url.edit("**A stream matching your query wasn't found. "
-                         "Try again with different options.\n**"
-                         "**Available Qualities:**\n"
-                         f"{available_qualities}")
-        return
-
-    video_size = video_stream.filesize / 1000000
-
-    if video_size >= 50:
-        await v_url.edit(
-            ("**File larger than 50MB. Sending the link instead.\n**"
-             f"Get the video [here]({video_stream.url})\n\n"
-             "**If the video plays instead of downloading, "
-             "right click(or long press on touchscreen) and "
-             "press 'Save Video As...'(may depend on the browser) "
-             "to download the video.**"))
-        return
-
-    await v_url.edit("`Preparing to download...`")
-
-    video_stream.download(filename=video.title)
-
-    url = f"https://img.youtube.com/vi/{video.video_id}/maxresdefault.jpg"
-    resp = get(url)
-    with open('thumbnail.jpg', 'wb') as file:
-        file.write(resp.content)
-
-    await v_url.edit("**Uploading...**")
-    await bot.send_file(v_url.chat_id,
-                        f'{safe_filename(video.title)}.mp4',
-                        caption=f"{video.title}",
-                        thumb="thumbnail.jpg")
-
-    os.remove(f"{safe_filename(video.title)}.mp4")
-    os.remove('thumbnail.jpg')
-    await v_url.delete()
-
-
-@register(outgoing=True, pattern=r"^.cr (\S*) ?(\S*) ?(\S*)")
-async def currency(cconvert):
-    """ For .cr command, convert amount, from, to. """
-    amount = cconvert.pattern_match.group(1)
-    currency_from = cconvert.pattern_match.group(3).upper()
-    currency_to = cconvert.pattern_match.group(2).upper()
-    data = get(
-        f"https://free.currconv.com/api/v7/convert?apiKey={CURRENCY_API}&q={currency_from}_{currency_to}&compact=ultra"
-    ).json()
-    result = data[f'{currency_from}_{currency_to}']
-    result = float(amount) / float(result)
-    result = round(result, 5)
-    await cconvert.edit(
-        f"{amount} {currency_to} is:\n`{result} {currency_from}`")
-
 
 def deEmojify(inputString):
     """ Remove emojis and other non-safe characters from string """
     return get_emoji_regexp().sub(u'', inputString)
 
-
-CMD_HELP.update({
-    'img':
-    ".img <search_query>\n"
-    "Usage: Does an image search on Google and shows two images."
-})
-
-CMD_HELP.update(
-    {'google': ".google <search_query>\n"
-     "Usage: Does a search on Google."})
-
-CMD_HELP.update(
-    {'wiki': ".wiki <search_query>\n"
-     "Usage: Does a Wikipedia search."})
-
-CMD_HELP.update(
-    {'ud': ".ud <search_query>\n"
-     "Usage: Does a search on Urban Dictionary."})
 
 CMD_HELP.update({
     'tts':
@@ -443,22 +133,4 @@ CMD_HELP.update({
     "Usage: Changes the default language of"
     "userbot scrapers used for Google TRT, "
     "TTS may not work."
-})
-
-CMD_HELP.update(
-    {'yt': ".yt <search_query>\n"
-     "Usage: Does a YouTube search. "})
-
-CMD_HELP.update({
-    'ytdl':
-    ".ytdl <url> <quality>(optional)\n"
-    "Usage: Download videos from YouTube. "
-    "If no quality is specified, the highest downloadable quality is "
-    "downloaded. Will send the link if the video is larger than 50 MB."
-})
-
-CMD_HELP.update({
-    'cr':
-    ".cr <from> <to>\n"
-    "Usage: Currency converter, converts <from> to <to>."
 })
