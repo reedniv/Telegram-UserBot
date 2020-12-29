@@ -15,8 +15,7 @@ from gtts import gTTS
 from requests import get
 
 from telethon.tl.types import DocumentAttributeAudio
-from userbot import (BOTLOG, BOTLOG_CHATID, CMD_HELP, CURRENCY_API
-                     , CHROME_DRIVER, GOOGLE_CHROME_BIN, bot)
+from userbot import (BOTLOG, BOTLOG_CHATID, CMD_HELP, CHROME_DRIVER, GOOGLE_CHROME_BIN, bot)
 from userbot.events import register
 
 LANG = "en"
