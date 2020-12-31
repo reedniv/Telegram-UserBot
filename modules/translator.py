@@ -34,7 +34,7 @@ async def translateme(trans):
         return
 
     try:
-        reply_text = translator.translate(deEmojify(message), dest=TRT_LANG)
+        reply_text = translator.translate(deEmojify(message), dest=LANG)
     except ValueError:
         await trans.edit("Invalid destination language.")
         return
@@ -53,7 +53,7 @@ async def translateme(trans):
 
 @register(pattern="^.lang (.*)", outgoing=True)
 async def lang(value):
-    """ For .lang command, change the default langauge of userbot scrapers. """
+    """ For .lang command, change the default langauge of userbot translation. """
     global LANG
     LANG = value.pattern_match.group(1)
     await value.edit("Default language changed to **" + LANG + "**")
