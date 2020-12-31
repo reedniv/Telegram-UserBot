@@ -41,7 +41,7 @@ async def translateme(trans):
 
     source_lan = LANGUAGES[f'{reply_text.src.lower()}']
     transl_lan = LANGUAGES[f'{reply_text.dest.lower()}']
-    reply_text = f"From **{source_lan.title()}**\nTo **{transl_lan.title()}:**\n\n{reply_text.text}"
+    reply_text = f"From **{source_lan.title()}**\nTo **{transl_lan.title()}:**\n\n`{reply_text.text}`"
 
     await trans.edit(reply_text)
     if BOTLOG:
@@ -53,7 +53,7 @@ async def translateme(trans):
 
 @register(pattern="^.lang (.*)", outgoing=True)
 async def lang(value):
-    """ For .lang command, change the default langauge of userbot translation. """
+    """ For .lang command, change the default language of userbot translation. """
     global LANG
     LANG = value.pattern_match.group(1)
     await value.edit("Default language changed to **" + LANG + "**")
