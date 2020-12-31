@@ -20,50 +20,6 @@ from userbot.events import register
 
 LANG = "en"
 
-@register(outgoing=True, pattern=r"^.tts(?: |$)([\s\S]*)")
-async def text_to_speech(query):
-    """ For .tts command, a wrapper for Google Text-to-Speech. """
-    textx = await query.get_reply_message()
-    message = query.pattern_match.group(1)
-    if message:
-        pass
-    elif textx:
-        message = textx.text
-    else:
-        await query.edit("`Give a text or reply to a message for Text-to-Speech!`")
-        return
-
-    try:
-        gTTS(message, LANG)
-    except AssertionError:
-        await query.edit(
-            'The text is empty.\n'
-            'Nothing left to speak after pre-precessing, tokenizing and cleaning.'
-        )
-        return
-    except ValueError:
-        await query.edit('Language is not supported.')
-        return
-    except RuntimeError:
-        await query.edit('Error loading the languages dictionary.')
-        return
-    tts = gTTS(message, LANG)
-    tts.save("k.mp3")
-    with open("k.mp3", "rb") as audio:
-        linelist = list(audio)
-        linecount = len(linelist)
-    if linecount == 1:
-        tts = gTTS(message, LANG)
-        tts.save("k.mp3")
-    with open("k.mp3", "r"):
-        await query.client.send_file(query.chat_id, "k.mp3", voice_note=True)
-        os.remove("k.mp3")
-        if BOTLOG:
-            await query.client.send_message(
-                BOTLOG_CHATID, "Text to Speech executed successfully !")
-        await query.delete()
-
-
 @register(outgoing=True, pattern=r"^.trt(?: |$)([\s\S]*)")
 async def translateme(trans):
     """ For .trt command, translate the given text using Google Translate. """
@@ -107,18 +63,10 @@ async def lang(value):
         await value.client.send_message(
             BOTLOG_CHATID, "Default language changed to **" + LANG + "**")
 
-
-
 def deEmojify(inputString):
     """ Remove emojis and other non-safe characters from string """
     return get_emoji_regexp().sub(u'', inputString)
 
-
-CMD_HELP.update({
-    'tts':
-    ".tts <text> or reply to someones text with .trt\n"
-    "Usage: Translates text to speech for the default language which is set."
-})
 
 CMD_HELP.update({
     'trt':
