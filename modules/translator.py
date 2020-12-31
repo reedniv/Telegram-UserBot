@@ -10,7 +10,6 @@ from emoji import get_emoji_regexp
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googletrans import LANGUAGES, Translator
-from gtts import gTTS
 
 from requests import get
 
