@@ -76,7 +76,7 @@ CMD_HELP.update({
 CMD_HELP.update({
     'lang':
     ".lang <lang>\n"
-    "Usage: Changes the default language of"
-    "userbot scrapers used for Google TRT, "
-    "TTS may not work."
+    "Usage: Changes the default language of "
+    "userbot translator used for Google Translate."
+    
 })
