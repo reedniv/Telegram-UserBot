@@ -34,21 +34,20 @@ async def translateme(trans):
         return
 
     try:
-        reply_text = translator.translate(deEmojify(message), dest=LANG)
+        reply_text = translator.translate(deEmojify(message), dest=TRT_LANG)
     except ValueError:
         await trans.edit("Invalid destination language.")
         return
 
     source_lan = LANGUAGES[f'{reply_text.src.lower()}']
     transl_lan = LANGUAGES[f'{reply_text.dest.lower()}']
-    reply_text = f"**Source ({source_lan.title()}):**" + f"__\n\n{message}\n__" + f"\n\n**Translation ({transl_lan.title()}):**" + f"__\n\n{reply_text.text}__"
+    reply_text = f"From **{source_lan.title()}**\nTo **{transl_lan.title()}:**\n\n{reply_text.text}"
 
-    await trans.client.send_message(trans.chat_id, reply_text)
-    await trans.delete()
+    await trans.edit(reply_text)
     if BOTLOG:
         await trans.client.send_message(
             BOTLOG_CHATID,
-            f"Translate query {message} was executed successfully",
+            f"Translated some {source_lan.title()} stuff to {transl_lan.title()} just now.",
         )
 
 
@@ -65,7 +64,6 @@ async def lang(value):
 def deEmojify(inputString):
     """ Remove emojis and other non-safe characters from string """
     return get_emoji_regexp().sub(u'', inputString)
-
 
 CMD_HELP.update({
     'trt':
