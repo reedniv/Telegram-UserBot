@@ -5,16 +5,6 @@
 
 version: 2
 updates:
-  - package-ecosystem: "bundler"
-    # Raise pull requests to update vendored dependencies that are checked in to the repository
-    vendor: true
-    directory: "/"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "composer"
-    directory: "/"
-    schedule:
-      interval: "daily"
   - package-ecosystem: "pip" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
