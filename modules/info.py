@@ -20,9 +20,6 @@ from userbot import BOTLOG, BOTLOG_CHATID, CMD_HELP, bot
 from userbot.events import register
 
 
-
-
-
 @register(outgoing=True, pattern="^\.userid$")
 async def useridgetter(target):
     """ For .userid command, returns the ID of the target user. """
@@ -197,10 +194,6 @@ async def get_bots(show):
             reply_to=show.id,
         )
         remove("botlist.txt")
-
-
-
-
 
 @register(outgoing=True, pattern="^\.zombies(?: |$)(.*)", groups_only=True)
 async def rm_deletedacc(show):
