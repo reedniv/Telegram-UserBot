@@ -1,4 +1,4 @@
-""" Userbot module containing userid, chatid and log commands"""
+""" Userbot module to help you containing userid, chatid, admins, users, bots, zombies, & other commands"""
 
 from asyncio import sleep
 from os import remove
