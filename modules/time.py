@@ -1,14 +1,21 @@
 """ Userbot module for getting the date and time of any country or the userbot server.  """
 
+import os
+
 from datetime import datetime as dt
 
 from pytz import country_names as c_n
 from pytz import country_timezones as c_tz
 from pytz import timezone as tz
 
-from userbot import CMD_HELP, COUNTRY, TZ_NUMBER
+from userbot import CMD_HELP
 from userbot.events import register
 
+
+
+# Time & Date - Country and Time Zone
+COUNTRY = str(os.environ.get("COUNTRY", ""))
+TZ_NUMBER = int(os.environ.get("TZ_NUMBER", 1))
 
 async def get_tz(con):
     """ Get time zone of the given country. """
